@@ -47,6 +47,15 @@ public class LoginActivity extends AppCompatActivity {
                 progressDialog.show();
             }
         });
+
+        phoneButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(LoginActivity.this, PhoneLoginActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
+            }
+        });
     }
 
     private void loggedIn() {

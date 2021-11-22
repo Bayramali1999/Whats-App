@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".activities.PhoneLoginActivity">
+
+    <EditText
+        android:id="@+id/phone_login_number"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginLeft="17dp"
+        android:layout_marginTop="175dp"
+        android:layout_marginRight="17dp"
+        android:background="@drawable/inputs"
+        android:drawableStart="@drawable/phone"
+        android:hint="Write phone number..."
+        android:inputType="phone"
+        android:padding="5dp" />
+
+
+    <EditText
+        android:id="@+id/verifiy_code_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/phone_login_number"
+        android:layout_alignParentStart="true"
+        android:layout_marginLeft="17dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginRight="17dp"
+        android:background="@drawable/inputs"
+        android:drawableStart="@drawable/password"
+        android:hint="Verify code write here..."
+        android:inputType="text"
+        android:padding="5dp"
+        android:visibility="invisible" />
+
+    <Button
+        android:id="@+id/send_verification"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/verifiy_code_text"
+        android:layout_marginLeft="19dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginRight="19dp"
+        android:background="@drawable/buttons"
+        android:text="Send verification code"
+        android:textAllCaps="false"
+        android:textColor="@color/white"
+        android:textSize="24sp" />
+
+    <Button
+        android:id="@+id/verify_code"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/send_verification"
+        android:layout_marginLeft="19dp"
+        android:layout_marginTop="5dp"
+        android:layout_marginRight="19dp"
+        android:background="@drawable/buttons"
+        android:text="Verify"
+        android:textAllCaps="false"
+        android:textColor="@color/white"
+        android:textSize="24sp"
+        android:visibility="invisible" />
+
+</RelativeLayout>
