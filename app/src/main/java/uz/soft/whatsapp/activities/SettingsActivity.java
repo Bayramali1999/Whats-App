@@ -15,7 +15,6 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
-import com.google.android.gms.tasks.OnFailureListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -34,16 +33,20 @@ import uz.soft.whatsapp.R;
 
 public class SettingsActivity extends AppCompatActivity {
 
+    //todo does not works if i first created new account
+
     private static final int REQ_GALLERY_CODE = 416;
     private Button editProfileBtn;
     private EditText editUserName, editUserStatus;
     private CircleImageView circleImageView;
+
     private String uid;
+    private String imageUrl = null;
+
     private FirebaseAuth mAuth;
     private DatabaseReference databaseReference;
     private StorageReference storageReference;
     private ProgressDialog progressDialog;
-    private String imageUrl = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,18 +54,18 @@ public class SettingsActivity extends AppCompatActivity {
         setContentView(R.layout.activity_settings);
 
         progressDialog = new ProgressDialog(this);
-        progressDialog.setTitle("Loading....");
-        progressDialog.setMessage("Please wait.");
+
+        progressDialog.setTitle(" Loading...");
+        progressDialog.setTitle("Please wait..");
         progressDialog.show();
         storageReference = FirebaseStorage.getInstance().getReference().child("Profile Image");
 
         initializationView();
 
+        viewCheck();
         editUserName.setVisibility(View.INVISIBLE);
 
         editProfileBtn.setOnClickListener(view -> updateUserData());
-
-        viewCheck();
 
         circleImageView.setOnClickListener(view -> {
             Intent galleryIntent = new Intent();
@@ -87,6 +90,7 @@ public class SettingsActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        progressDialog.show();
 
         Toast.makeText(this, "resultCode: " + resultCode + "requestCode:"
                 + requestCode, Toast.LENGTH_SHORT).show();
@@ -112,8 +116,6 @@ public class SettingsActivity extends AppCompatActivity {
                                 .getReference()
                                 .getDownloadUrl()
                                 .addOnSuccessListener(uri -> {
-                                    progressDialog.setTitle(" Loading...");
-                                    progressDialog.setTitle("Please wait..");
                                     progressDialog.show();
                                     String downloadUrl = uri.toString();
                                     imageUrl = downloadUrl;
@@ -123,44 +125,45 @@ public class SettingsActivity extends AppCompatActivity {
                                             .setValue(downloadUrl)
                                             .addOnCompleteListener(task -> {
                                                 if (task.isSuccessful()) {
-
-                                                    Glide.with(SettingsActivity.this)
+                                                    Glide.with(getApplicationContext())
                                                             .load(downloadUrl)
                                                             .into(circleImageView);
                                                     progressDialog.dismiss();
+                                                } else {
+                                                    Toast.makeText(SettingsActivity.this, "Download url", Toast.LENGTH_SHORT).show();
+                                                    progressDialog.dismiss();
                                                 }
-                                            }).addOnFailureListener(new OnFailureListener() {
-                                        @Override
-                                        public void onFailure(@NonNull Exception e) {
-                                            progressDialog.dismiss();
-                                        }
-                                    });
+                                            }).addOnFailureListener(err -> progressDialog.dismiss());
+                                    ;
                                 }));
 
             }
         }
     }
 
-        private void viewCheck() {
+    private void viewCheck() {
         databaseReference.child("Users").child(uid).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (snapshot.exists() && snapshot.hasChild("name") && snapshot.hasChild("image")) {
+
+                if (snapshot.exists()
+                        && snapshot.hasChild("name")
+                        && snapshot.hasChild("image")) {
+
                     String userName = snapshot.child("name").getValue().toString();
                     String userStatus = snapshot.child("status").getValue().toString();
-                    imageUrl = snapshot.child("image").getValue().toString();
-
-
-//                    Glide
-//                            .with(SettingsActivity.this)
-//                            .load(imageUrl)
-//                            .into(circleImageView);
-
-
+                    String urlDownload = snapshot.child("image").getValue().toString();
+                    imageUrl = urlDownload;
                     editUserName.setText(userName);
                     editUserStatus.setText(userStatus);
 
-                } else if (snapshot.exists() && snapshot.hasChild("name")) {
+                    Glide.with(getApplicationContext())
+                            .load(urlDownload)
+                            .into(circleImageView);
+
+                } else if (snapshot.exists()
+                        && snapshot.hasChild("name")) {
+
                     String userName = snapshot.child("name").getValue().toString();
                     String userStatus = snapshot.child("status").getValue().toString();
 
@@ -169,67 +172,69 @@ public class SettingsActivity extends AppCompatActivity {
                 } else {
                     editUserName.setVisibility(View.VISIBLE);
                 }
-
                 progressDialog.dismiss();
+
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-
+                progressDialog.dismiss();
             }
         });
     }
 
     private void updateUserData() {
+        progressDialog.show();
+
         HashMap<String, String> hashMap = new HashMap<>();
+
         String userName = editUserName.getText().toString();
         String userStatus = editUserStatus.getText().toString();
-        if (TextUtils.isEmpty(userName) || TextUtils.isEmpty(userStatus)) {
+
+        if (TextUtils.isEmpty(userName) && TextUtils.isEmpty(userStatus)) {
             Toast.makeText(this, "check your inputs", Toast.LENGTH_SHORT).show();
-        } else {
-            if (imageUrl != null) {
-                hashMap.put("name", userName);
-                hashMap.put("uid", uid);
-                hashMap.put("status", userStatus);
-                hashMap.put("image", imageUrl);
-
-                databaseReference
-                        .child("Users")
-                        .child(uid)
-                        .setValue(hashMap)
-                        .addOnCompleteListener(task -> {
-                            if (task.isSuccessful()) {
-                                Toast.makeText(SettingsActivity.this,
-                                        "Welcome", Toast.LENGTH_SHORT)
-                                        .show();
-                                goToMainActivity();
-                            }
-                        });
-            } else {
-                hashMap.put("name", userName);
-                hashMap.put("uid", uid);
-                hashMap.put("status", userStatus);
-
-                databaseReference
-                        .child("Users")
-                        .child(uid)
-                        .setValue(hashMap)
-                        .addOnCompleteListener(task -> {
-                            if (task.isSuccessful()) {
-                                Toast.makeText(SettingsActivity.this,
-                                        "Welcome", Toast.LENGTH_SHORT)
-                                        .show();
-                                goToMainActivity();
-                            }
-                        });
-            }
         }
+        if (imageUrl != null && !TextUtils.isEmpty(userName) && !TextUtils.isEmpty(userStatus)) {
+            hashMap.put("name", userName);
+            hashMap.put("uid", uid);
+            hashMap.put("status", userStatus);
+            hashMap.put("image", imageUrl);
 
+            databaseReference
+                    .child("Users")
+                    .child(uid)
+                    .setValue(hashMap)
+                    .addOnCompleteListener(task -> {
+                        if (task.isSuccessful()) {
+                            Toast.makeText(SettingsActivity.this,
+                                    "Welcome", Toast.LENGTH_SHORT)
+                                    .show();
+                            goToMainActivity();
+                        }
+                    });
+        } else {
+            hashMap.put("name", userName);
+            hashMap.put("uid", uid);
+            hashMap.put("status", userStatus);
+
+            databaseReference
+                    .child("Users")
+                    .child(uid)
+                    .setValue(hashMap)
+                    .addOnCompleteListener(task -> {
+                        if (task.isSuccessful()) {
+                            Toast.makeText(SettingsActivity.this,
+                                    "Welcome", Toast.LENGTH_SHORT)
+                                    .show();
+                            goToMainActivity();
+                        }
+                    });
+        }
     }
 
 
-
     private void goToMainActivity() {
+        progressDialog.dismiss();
         Intent intent = new Intent(this, MainActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
