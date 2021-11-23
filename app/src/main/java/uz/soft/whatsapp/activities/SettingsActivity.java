@@ -1,6 +1,8 @@
 package uz.soft.whatsapp.activities;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
@@ -9,16 +11,21 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
+import com.bumptech.glide.Glide;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.theartofdev.edmodo.cropper.CropImage;
+import com.theartofdev.edmodo.cropper.CropImageView;
 
 import java.util.HashMap;
 
@@ -27,43 +34,132 @@ import uz.soft.whatsapp.R;
 
 public class SettingsActivity extends AppCompatActivity {
 
+    private static final int REQ_GALLERY_CODE = 416;
     private Button editProfileBtn;
     private EditText editUserName, editUserStatus;
     private CircleImageView circleImageView;
-
     private String uid;
     private FirebaseAuth mAuth;
     private DatabaseReference databaseReference;
+    private StorageReference storageReference;
+    private ProgressDialog progressDialog;
+    private String imageUrl = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
 
+        progressDialog = new ProgressDialog(this);
+        progressDialog.setTitle("Loading....");
+        progressDialog.setMessage("Please wait.");
+        progressDialog.show();
+        storageReference = FirebaseStorage.getInstance().getReference().child("Profile Image");
+
         initializationView();
+
         editUserName.setVisibility(View.INVISIBLE);
-        editProfileBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                updateUserData();
-            }
-        });
+
+        editProfileBtn.setOnClickListener(view -> updateUserData());
 
         viewCheck();
+
+        circleImageView.setOnClickListener(view -> {
+            Intent galleryIntent = new Intent();
+            galleryIntent.setAction(Intent.ACTION_GET_CONTENT);
+            galleryIntent.setType("image/*");
+            startActivityForResult(galleryIntent, REQ_GALLERY_CODE);
+        });
     }
 
-    private void viewCheck() {
+    private void initializationView() {
+        mAuth = FirebaseAuth.getInstance();
+        uid = mAuth.getCurrentUser().getUid();
+        databaseReference = FirebaseDatabase.getInstance().getReference();
+
+        editProfileBtn = findViewById(R.id.edit_profile_btn);
+        editUserName = findViewById(R.id.update_username);
+        editUserStatus = findViewById(R.id.profile_status);
+        circleImageView = findViewById(R.id.setting_image);
+    }
+
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        Toast.makeText(this, "resultCode: " + resultCode + "requestCode:"
+                + requestCode, Toast.LENGTH_SHORT).show();
+
+        if (resultCode == RESULT_OK && requestCode == REQ_GALLERY_CODE && data != null) {
+            Uri uri = data.getData();
+            CropImage.activity()
+                    .setGuidelines(CropImageView.Guidelines.ON)
+                    .setAspectRatio(1, 1)
+                    .start(this);
+
+
+        }
+        if (requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE) {
+            CropImage.ActivityResult result = CropImage.getActivityResult(data);
+            if (resultCode == RESULT_OK) {
+                Uri resultUri = result.getUri();
+
+                StorageReference filePath = storageReference.child(uid + ".jpg");
+
+                filePath.putFile(resultUri).addOnSuccessListener(taskSnapshot ->
+                        taskSnapshot.getMetadata()
+                                .getReference()
+                                .getDownloadUrl()
+                                .addOnSuccessListener(uri -> {
+                                    progressDialog.setTitle(" Loading...");
+                                    progressDialog.setTitle("Please wait..");
+                                    progressDialog.show();
+                                    String downloadUrl = uri.toString();
+                                    imageUrl = downloadUrl;
+                                    databaseReference.child("Users")
+                                            .child(uid)
+                                            .child("image")
+                                            .setValue(downloadUrl)
+                                            .addOnCompleteListener(task -> {
+                                                if (task.isSuccessful()) {
+
+                                                    Glide.with(SettingsActivity.this)
+                                                            .load(downloadUrl)
+                                                            .into(circleImageView);
+                                                    progressDialog.dismiss();
+                                                }
+                                            }).addOnFailureListener(new OnFailureListener() {
+                                        @Override
+                                        public void onFailure(@NonNull Exception e) {
+                                            progressDialog.dismiss();
+                                        }
+                                    });
+                                }));
+
+            }
+        }
+    }
+
+        private void viewCheck() {
         databaseReference.child("Users").child(uid).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (snapshot.exists() && snapshot.hasChild("name") && snapshot.hasChild("image")) {
-                    String userName = snapshot.child("name").toString();
-                    String userStatus = snapshot.child("status").toString();
-                    String userImage = snapshot.child("image").toString();
+                    String userName = snapshot.child("name").getValue().toString();
+                    String userStatus = snapshot.child("status").getValue().toString();
+                    imageUrl = snapshot.child("image").getValue().toString();
+
+
+//                    Glide
+//                            .with(SettingsActivity.this)
+//                            .load(imageUrl)
+//                            .into(circleImageView);
+
 
                     editUserName.setText(userName);
                     editUserStatus.setText(userStatus);
-//circleImageView.setIm
+
                 } else if (snapshot.exists() && snapshot.hasChild("name")) {
                     String userName = snapshot.child("name").getValue().toString();
                     String userStatus = snapshot.child("status").getValue().toString();
@@ -74,6 +170,7 @@ public class SettingsActivity extends AppCompatActivity {
                     editUserName.setVisibility(View.VISIBLE);
                 }
 
+                progressDialog.dismiss();
             }
 
             @Override
@@ -88,40 +185,49 @@ public class SettingsActivity extends AppCompatActivity {
         String userName = editUserName.getText().toString();
         String userStatus = editUserStatus.getText().toString();
         if (TextUtils.isEmpty(userName) || TextUtils.isEmpty(userStatus)) {
-
+            Toast.makeText(this, "check your inputs", Toast.LENGTH_SHORT).show();
         } else {
-            hashMap.put("name", userName);
-            hashMap.put("uid", uid);
-            hashMap.put("status", userStatus);
-            databaseReference.child("Users").child(uid)
-                    .setValue(hashMap)
-                    .addOnCompleteListener(new OnCompleteListener<Void>() {
-                        @Override
-                        public void onComplete(@NonNull Task<Void> task) {
+            if (imageUrl != null) {
+                hashMap.put("name", userName);
+                hashMap.put("uid", uid);
+                hashMap.put("status", userStatus);
+                hashMap.put("image", imageUrl);
 
+                databaseReference
+                        .child("Users")
+                        .child(uid)
+                        .setValue(hashMap)
+                        .addOnCompleteListener(task -> {
                             if (task.isSuccessful()) {
-                                Toast.makeText(SettingsActivity.this, "Welcome", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(SettingsActivity.this,
+                                        "Welcome", Toast.LENGTH_SHORT)
+                                        .show();
                                 goToMainActivity();
-                            } else {
-                                String msg = task.getException().getMessage();
-                                Toast.makeText(SettingsActivity.this, msg, Toast.LENGTH_SHORT).show();
                             }
-                        }
-                    });
+                        });
+            } else {
+                hashMap.put("name", userName);
+                hashMap.put("uid", uid);
+                hashMap.put("status", userStatus);
+
+                databaseReference
+                        .child("Users")
+                        .child(uid)
+                        .setValue(hashMap)
+                        .addOnCompleteListener(task -> {
+                            if (task.isSuccessful()) {
+                                Toast.makeText(SettingsActivity.this,
+                                        "Welcome", Toast.LENGTH_SHORT)
+                                        .show();
+                                goToMainActivity();
+                            }
+                        });
+            }
         }
 
     }
 
-    private void initializationView() {
-        mAuth = FirebaseAuth.getInstance();
-        uid = mAuth.getCurrentUser().getUid();
-        databaseReference = FirebaseDatabase.getInstance().getReference();
 
-        editProfileBtn = findViewById(R.id.edit_profile_btn);
-        editUserName = findViewById(R.id.update_username);
-        editUserStatus = findViewById(R.id.profile_status);
-        circleImageView = findViewById(R.id.setting_image);
-    }
 
     private void goToMainActivity() {
         Intent intent = new Intent(this, MainActivity.class);

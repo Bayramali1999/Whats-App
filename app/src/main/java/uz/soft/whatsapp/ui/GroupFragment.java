@@ -86,7 +86,6 @@ public class GroupFragment extends Fragment {
                 }
                 arrayList.clear();
                 arrayList.addAll(set);
-                Log.e("TAG", "onDataChange: " + arrayList.get(0));
                 adapter.notifyDataSetChanged();
             }
 
