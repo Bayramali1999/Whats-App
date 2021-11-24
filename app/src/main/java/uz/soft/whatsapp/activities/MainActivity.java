@@ -181,6 +181,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void findFriends() {
-
+        Intent intent = new Intent(this, FindFriendsActivity.class);
+        startActivity(intent);
     }
 }
