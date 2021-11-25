@@ -70,6 +70,10 @@ public class LoginActivity extends AppCompatActivity {
                         @Override
                         public void onComplete(@NonNull Task<AuthResult> task) {
                             if (task.isSuccessful()) {
+
+                                String currentUserId = mAuth.getCurrentUser().getUid();
+//                                String token = FirebaseInstanceId
+
                                 goToMainActivity();
                                 Toast.makeText(LoginActivity.this, "You have successfully login in",
                                         Toast.LENGTH_SHORT).show();

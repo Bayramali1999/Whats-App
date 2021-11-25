@@ -175,10 +175,8 @@ public class MainActivity extends AppCompatActivity {
 
     private void openSettings() {
         Intent intent = new Intent(this, SettingsActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
-        finish();
-    }
+        }
 
     private void findFriends() {
         Intent intent = new Intent(this, FindFriendsActivity.class);

@@ -1,66 +1,122 @@
 package uz.soft.whatsapp.ui;
 
+import android.content.Intent;
 import android.os.Bundle;
-
-import androidx.fragment.app.Fragment;
-
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.bumptech.glide.Glide;
+import com.firebase.ui.database.FirebaseRecyclerAdapter;
+import com.firebase.ui.database.FirebaseRecyclerOptions;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
+import de.hdodenhof.circleimageview.CircleImageView;
 import uz.soft.whatsapp.R;
+import uz.soft.whatsapp.activities.ChatActivity;
+import uz.soft.whatsapp.model.Contacts;
 
-/**
- * A simple {@link Fragment} subclass.
- * Use the {@link ChatsFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
 public class ChatsFragment extends Fragment {
 
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
+    private View chatFragmentView;
+    private RecyclerView recyclerView;
 
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
-
-    public ChatsFragment() {
-        // Required empty public constructor
-    }
-
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment ChatsFragment.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static ChatsFragment newInstance(String param1, String param2) {
-        ChatsFragment fragment = new ChatsFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
-    }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }
-    }
+    private DatabaseReference chatRef, userRef;
+    private FirebaseAuth mAuth;
+    private String currentUserID;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_chats, container, false);
+        chatFragmentView = inflater.inflate(R.layout.fragment_chats, container, false);
+        recyclerView = chatFragmentView.findViewById(R.id.all_charted_items);
+        mAuth = FirebaseAuth.getInstance();
+        currentUserID = mAuth.getCurrentUser().getUid();
+        chatRef = FirebaseDatabase.getInstance().getReference().child("Contacts").child(currentUserID);
+        userRef = FirebaseDatabase.getInstance().getReference().child("Users");
+        return chatFragmentView;
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+
+        FirebaseRecyclerOptions<Contacts> options =
+                new FirebaseRecyclerOptions.Builder<Contacts>()
+                        .setQuery(chatRef, Contacts.class)
+                        .build();
+
+        FirebaseRecyclerAdapter<Contacts, ChatVH> adapter = new FirebaseRecyclerAdapter<Contacts, ChatVH>(options) {
+            @Override
+            protected void onBindViewHolder(@NonNull ChatVH holder, int position, @NonNull Contacts model) {
+                final String userId = getRef(position).getKey();
+                userRef.child(userId)
+                        .addValueEventListener(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                if (snapshot.exists()) {
+                                    if (snapshot.hasChild("image")) {
+                                        String imageUrl = snapshot.child("image").getValue().toString();
+                                        Glide.with(getContext())
+                                                .load(imageUrl)
+                                                .into(holder.imageUser);
+                                    }
+                                    String name = snapshot.child("name").getValue().toString();
+                                    String status = snapshot.child("status").getValue().toString();
+
+                                    holder.tvName.setText(name);
+                                    holder.tvStatus.setText("Last seen: Data|Time");
+
+                                    holder.itemView.setOnClickListener(new View.OnClickListener() {
+                                        @Override
+                                        public void onClick(View view) {
+                                            Intent intent = new Intent(getContext(), ChatActivity.class);
+                                            intent.putExtra("visit_user_id", userId);
+                                            intent.putExtra("visit_user_name", name);
+                                            startActivity(intent);
+                                        }
+                                    });
+                                }
+                            }
+
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError error) {
+
+                            }
+                        });
+            }
+
+            @NonNull
+            @Override
+            public ChatVH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+                View v = LayoutInflater.from(getContext()).inflate(R.layout.display_layout_f, parent, false);
+                return new ChatVH(v);
+            }
+        };
+        recyclerView.setAdapter(adapter);
+        adapter.startListening();
+    }
+
+    class ChatVH extends RecyclerView.ViewHolder {
+        TextView tvName, tvStatus;
+        CircleImageView imageUser, imageOnline;
+
+        public ChatVH(@NonNull View itemView) {
+            super(itemView);
+            tvName = itemView.findViewById(R.id.find_friends_name);
+            tvStatus = itemView.findViewById(R.id.find_friends_status);
+            imageUser = itemView.findViewById(R.id.find_friends_image);
+            imageOnline = itemView.findViewById(R.id.find_friends_image_online);
+        }
     }
 }
