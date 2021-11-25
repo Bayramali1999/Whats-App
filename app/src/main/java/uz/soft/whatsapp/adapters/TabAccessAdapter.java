@@ -9,6 +9,7 @@ import androidx.fragment.app.FragmentPagerAdapter;
 import uz.soft.whatsapp.ui.ChatsFragment;
 import uz.soft.whatsapp.ui.ContactFragment;
 import uz.soft.whatsapp.ui.GroupFragment;
+import uz.soft.whatsapp.ui.RequestsFragment;
 
 public class TabAccessAdapter extends FragmentPagerAdapter {
 
@@ -29,6 +30,9 @@ public class TabAccessAdapter extends FragmentPagerAdapter {
             case 2:
                 ContactFragment contactFragment = new ContactFragment();
                 return contactFragment;
+            case 3:
+                RequestsFragment requestsFragment = new RequestsFragment();
+                return requestsFragment;
             default:
                 return null;
         }
@@ -36,7 +40,7 @@ public class TabAccessAdapter extends FragmentPagerAdapter {
 
     @Override
     public int getCount() {
-        return 3;
+        return 4;
     }
 
     @Nullable
@@ -49,6 +53,8 @@ public class TabAccessAdapter extends FragmentPagerAdapter {
                 return "Groups";
             case 2:
                 return "Contacts";
+            case 3:
+                return "Requests";
             default:
                 return null;
         }
