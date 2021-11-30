@@ -19,32 +19,40 @@
         android:layout_above="@+id/sender"
         android:layout_below="@id/chat_toolbar"
         android:layout_alignParentStart="true"
-        
+
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
 
-    <LinearLayout
+    <RelativeLayout
         android:id="@+id/sender"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true">
+        android:layout_alignParentBottom="true"
+        android:background="@color/white">
+
+        <ImageButton
+            android:id="@+id/chat_send_image"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_alignParentStart="true"
+            android:background="@drawable/send_files" />
 
         <EditText
             android:id="@+id/chat_message"
-            android:layout_width="300dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="right"
-            android:layout_marginLeft="5dp"
+            android:layout_marginStart="5dp"
+            android:layout_marginEnd="5dp"
             android:layout_marginBottom="5dp"
-            android:layout_weight="0.62" />
+            android:layout_toStartOf="@id/chat_send_button"
+            android:layout_toEndOf="@id/chat_send_image" />
 
         <ImageButton
             android:id="@+id/chat_send_button"
-            android:layout_width="40dp"
+            android:layout_width="50dp"
             android:layout_height="50dp"
-            android:layout_gravity="right"
-            android:layout_weight="0.3"
+            android:layout_alignParentEnd="true"
             android:background="@drawable/send_message"
 
             />
-    </LinearLayout>
+    </RelativeLayout>
 </RelativeLayout>

@@ -77,7 +77,7 @@ public class ContactFragment extends Fragment {
 
                             holder.tvName.setText(name);
                             holder.tvStatus.setText(status);
-                            Glide.with(holder.view.getContext())
+                            Glide.with(getActivity().getApplicationContext())
                                     .load(image)
                                     .into(holder.imageUser);
                         } else {

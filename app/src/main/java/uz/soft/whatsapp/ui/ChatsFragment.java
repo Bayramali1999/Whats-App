@@ -21,6 +21,9 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+
 import de.hdodenhof.circleimageview.CircleImageView;
 import uz.soft.whatsapp.R;
 import uz.soft.whatsapp.activities.ChatActivity;
@@ -65,17 +68,37 @@ public class ChatsFragment extends Fragment {
                             @Override
                             public void onDataChange(@NonNull DataSnapshot snapshot) {
                                 if (snapshot.exists()) {
-                                    if (snapshot.hasChild("image")) {
+                                    if (snapshot.hasChild("image") && getActivity() != null) {
                                         String imageUrl = snapshot.child("image").getValue().toString();
                                         Glide.with(getContext())
                                                 .load(imageUrl)
                                                 .into(holder.imageUser);
                                     }
                                     String name = snapshot.child("name").getValue().toString();
-                                    String status = snapshot.child("status").getValue().toString();
-
                                     holder.tvName.setText(name);
-                                    holder.tvStatus.setText("Last seen: Data|Time");
+
+                                    if (snapshot.hasChild("userState")) {
+                                        String status = snapshot.child("userState").child("state").getValue().toString();
+                                        String lastSeenTime = snapshot.child("userState").child("time").getValue().toString();
+                                        String lastSeenDate = snapshot.child("userState").child("date").getValue().toString();
+
+
+                                        Calendar calendar = Calendar.getInstance();
+                                        SimpleDateFormat sd = new SimpleDateFormat("dd.MM.yyyy");
+                                        String dateNow = sd.format(calendar.getTime());
+                                        if (status.equals("offline")) {
+                                            if (dateNow.equals(lastSeenDate)) {
+                                                holder.tvStatus.setText(lastSeenTime);
+                                            } else {
+                                                holder.tvStatus.setText(lastSeenDate);
+                                            }
+                                        }
+                                        if (status.equals("online")) {
+                                            holder.tvStatus.setText("online");
+                                        }
+                                    } else {
+                                        holder.tvStatus.setText("offline");
+                                    }
 
                                     holder.itemView.setOnClickListener(new View.OnClickListener() {
                                         @Override

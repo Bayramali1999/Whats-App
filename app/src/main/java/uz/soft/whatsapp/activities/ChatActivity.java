@@ -1,8 +1,11 @@
 package uz.soft.whatsapp.activities;
 
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
@@ -14,6 +17,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.RecyclerView;
@@ -28,8 +32,13 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.StorageTask;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,7 +50,13 @@ import uz.soft.whatsapp.model.Message;
 
 public class ChatActivity extends AppCompatActivity {
 
-    private ImageButton sentMessage;
+    //sekinro ishlatish kere bumasa zagruska qimaskan
+
+    private String cheker = "", myUrl = "";
+    private StorageTask storageTask;
+    private Uri uri;
+    private String dateNow, timeNow;
+    private ImageButton sentMessage, sentFiles;
     private EditText textMessage;
     private RecyclerView recyclerChat;
     private CircleImageView imageUser;
@@ -49,9 +64,7 @@ public class ChatActivity extends AppCompatActivity {
     private Toolbar toolbar;
     private List<Message> messageList = new ArrayList<>();
     private MessageAdapter adapter;
-
     private String receiverUserId, thisUserName, senderUserId;
-
     private FirebaseAuth mAuth;
     private DatabaseReference chatUserRef, rootRef;
 
@@ -63,6 +76,60 @@ public class ChatActivity extends AppCompatActivity {
         initializationData();
         retrieveData();
         sentMessageAction();
+        changeReceiverUserState();
+
+        sentFiles.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                CharSequence options[] = new CharSequence[]{
+                        "Images",
+                        "PDF",
+                        "MS WORD"
+                };
+                AlertDialog.Builder builder = new AlertDialog.Builder(ChatActivity.this);
+                builder.setTitle("Choose file type");
+                builder.setItems(options, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        if (i == 0) {
+                            cheker = "image";
+                            Intent intent = new Intent();
+                            intent.setAction(Intent.ACTION_GET_CONTENT);
+                            intent.setType("image/*");
+//                            startActivityForResult();
+
+                            startActivityForResult(intent.createChooser(intent, "select image"), 321);
+
+                        }
+                        if (i == 1) {
+                            cheker = "pdf";
+                        }
+                        if (i == 2) {
+                            cheker = "docx";
+                        }
+                    }
+                });
+            }
+        });
+
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == RESULT_OK && requestCode == 321 && data != null) {
+            if (!cheker.equals("image")) {
+
+            } else if (cheker.equals("image")) {
+                StorageReference storageReference = FirebaseStorage.getInstance().getReference().child("Image Ref");
+
+                //                DatabaseReference userMessage = rootRef.child("Messages")
+
+
+            } else {
+
+            }
+        }
     }
 
     private void sentMessageAction() {
@@ -87,6 +154,9 @@ public class ChatActivity extends AppCompatActivity {
                     messageTextBody.put("message", message);
                     messageTextBody.put("type", "text");
                     messageTextBody.put("from", senderUserId);
+                    messageTextBody.put("to", receiverUserId);
+                    messageTextBody.put("date", dateNow);
+                    messageTextBody.put("time", timeNow);
 
                     Map messageDetails = new HashMap();
 
@@ -119,13 +189,14 @@ public class ChatActivity extends AppCompatActivity {
                         if (snapshot.exists()) {
                             if (snapshot.hasChild("image")) {
                                 String imageUrl = snapshot.child("image").getValue().toString();
-                                Glide.with(ChatActivity.this)
+                                Glide.with(getApplicationContext())
                                         .load(imageUrl)
                                         .into(imageUser);
                             }
                             String userName = snapshot.child("name").getValue().toString();
                             tvName.setText(userName);
-                            tvDate.setText("Last seen recently");
+                        } else {
+                            Toast.makeText(ChatActivity.this, "Snapshot ", Toast.LENGTH_SHORT).show();
                         }
                     }
 
@@ -137,6 +208,15 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     private void initializationData() {
+
+        Calendar calendar = Calendar.getInstance();
+        SimpleDateFormat sd = new SimpleDateFormat("dd.MM.yyyy");
+        SimpleDateFormat sdTime = new SimpleDateFormat("hh:mm");
+
+        dateNow = sd.format(calendar.getTime());
+        timeNow = sdTime.format(calendar.getTime());
+
+        sentFiles = findViewById(R.id.chat_send_image);
         rootRef = FirebaseDatabase.getInstance().getReference();
         mAuth = FirebaseAuth.getInstance();
         senderUserId = mAuth.getCurrentUser().getUid();
@@ -165,14 +245,14 @@ public class ChatActivity extends AppCompatActivity {
         tvName = findViewById(R.id.chat_user_name);
         tvDate = findViewById(R.id.chat_user_seen_date);
 
-        adapter = new MessageAdapter(messageList);
+        adapter = new MessageAdapter(messageList, getApplicationContext());
         recyclerChat.setAdapter(adapter);
     }
+
 
     @Override
     protected void onStart() {
         super.onStart();
-
         rootRef.child("Messages")
                 .child(senderUserId)
                 .child(receiverUserId)
@@ -205,5 +285,50 @@ public class ChatActivity extends AppCompatActivity {
 
                     }
                 });
+    }
+
+    private void changeReceiverUserState() {
+        chatUserRef.child(receiverUserId)
+                .child("userState")
+                .addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        if (snapshot.exists()) {
+                            String state = snapshot.child("state").getValue().toString();
+                            if (state.equals("online")) {
+                                tvDate.setText(state);
+                            }
+                            if (state.equals("offline")) {
+                                String lastSeenDate = snapshot.child("date").getValue().toString(),
+                                        lastSeenTime = snapshot.child("time").getValue().toString();
+
+                                Calendar calendar = Calendar.getInstance();
+                                SimpleDateFormat sd = new SimpleDateFormat("dd.MM.yyyy");
+                                String currentDate = sd.format(calendar.getTime());
+
+                                if (currentDate.equals(lastSeenDate)) {
+                                    tvDate.setText(lastSeenTime);
+                                }
+                                if (!currentDate.equals(lastSeenDate)) {
+                                    tvDate.setText(lastSeenDate);
+                                }
+                            }
+
+                        } else {
+                            tvDate.setText("offline");
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+
+                    }
+                });
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        finish();
     }
 }

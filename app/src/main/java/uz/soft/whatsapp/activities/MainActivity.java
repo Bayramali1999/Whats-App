@@ -26,6 +26,10 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.HashMap;
+
 import uz.soft.whatsapp.R;
 import uz.soft.whatsapp.adapters.TabAccessAdapter;
 
@@ -71,6 +75,16 @@ public class MainActivity extends AppCompatActivity {
             goToLoginActivity();
         } else {
             verifyUserNameAndStatus();
+            updateUserState("online");
+        }
+    }
+
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (currentUser != null ) {
+            updateUserState("offline");
         }
     }
 
@@ -176,10 +190,34 @@ public class MainActivity extends AppCompatActivity {
     private void openSettings() {
         Intent intent = new Intent(this, SettingsActivity.class);
         startActivity(intent);
-        }
+    }
 
     private void findFriends() {
         Intent intent = new Intent(this, FindFriendsActivity.class);
         startActivity(intent);
+    }
+
+    private void updateUserState(String state) {
+        String currentDate, currentTime;
+        Calendar data = Calendar.getInstance();
+        SimpleDateFormat sdDate = new SimpleDateFormat("dd.MM.yyyy");
+
+        SimpleDateFormat sdTime = new SimpleDateFormat("hh:mm");
+
+        currentDate = sdDate.format(data.getTime());
+        currentTime = sdTime.format(data.getTime());
+
+        HashMap<String, Object> statusHash = new HashMap<>();
+
+        statusHash.put("date", currentDate);
+        statusHash.put("time", currentTime);
+        statusHash.put("state", state);
+
+        String currentUser = mAuth.getCurrentUser().getUid();
+        databaseReference.child("Users")
+                .child(currentUser)
+                .child("userState")
+                .updateChildren(statusHash);
+
     }
 }

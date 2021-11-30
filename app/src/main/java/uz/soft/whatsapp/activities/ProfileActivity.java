@@ -75,7 +75,7 @@ public class ProfileActivity extends AppCompatActivity {
 
                             tvName.setText(name);
                             tvStatus.setText(status);
-                            Glide.with(ProfileActivity.this)
+                            Glide.with(getApplicationContext())
                                     .load(image)
                                     .into(profileImage);
                             manageRequest();

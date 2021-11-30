@@ -11,6 +11,12 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.firebase.ui.database.FirebaseRecyclerOptions;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.ValueEventListener;
+
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 import uz.soft.whatsapp.R;
@@ -29,6 +35,39 @@ public class FirebaseSimpleAdapter extends FirebaseRecyclerAdapter<Contacts, Fir
     @Override
     protected void onBindViewHolder(@NonNull FirebaseVH holder,
                                     int position, @NonNull Contacts model) {
+        getRef(position).child("userState")
+                .addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        if (snapshot.exists() && snapshot.hasChild("state")) {
+                            Calendar calendar = Calendar.getInstance();
+                            SimpleDateFormat sd = new SimpleDateFormat("dd.MM.yyyy");
+                            String dateNow = sd.format(calendar.getTime());
+
+                            String status = snapshot.child("state").getValue().toString();
+                            String lastSeenDate = snapshot.child("date").getValue().toString();
+                            String lastSeenTime = snapshot.child("time").getValue().toString();
+
+                            if (status.equals("online")) {
+                                holder.tvStatus.setText(status);
+                            }
+                            if (status.equals("offline")) {
+                                if (lastSeenDate.equals(dateNow)) {
+                                    holder.tvStatus.setText(lastSeenTime);
+                                } else {
+                                    holder.tvStatus.setText(lastSeenDate);
+                                }
+                            }
+                        } else {
+                            holder.tvStatus.setText("offline");
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+
+                    }
+                });
         holder.onBind(model, position, listener);
 
     }

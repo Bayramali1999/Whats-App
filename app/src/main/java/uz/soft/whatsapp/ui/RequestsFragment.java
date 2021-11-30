@@ -80,12 +80,11 @@ public class RequestsFragment extends Fragment {
                                             public void onDataChange(@NonNull DataSnapshot snapshot) {
                                                 if (snapshot.hasChild("image") && snapshot.exists()) {
                                                     String imageUrl = snapshot.child("image").getValue().toString();
-                                                    Glide.with(getContext())
+                                                    Glide.with(getActivity().getApplicationContext())
                                                             .load(imageUrl)
                                                             .into(holder.imageUser);
                                                 }
                                                 String nameUser = snapshot.child("name").getValue().toString();
-                                                String status = snapshot.child("status").getValue().toString();
 
                                                 holder.tvName.setText(nameUser);
                                                 holder.tvStatus.setText("Wants connected you a or c");
@@ -147,9 +146,53 @@ public class RequestsFragment extends Fragment {
 
                                             }
                                         });
-                                    } else {
-                                        holder.view.setVisibility(View.GONE);
                                     }
+                                    if (value.equals("sent")) {
+                                        userRef.child(sender_user_id).addValueEventListener(new ValueEventListener() {
+                                            @Override
+                                            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                                if (snapshot.hasChild("image") && snapshot.exists()) {
+                                                    String imageUrl = snapshot.child("image").getValue().toString();
+                                                    Glide.with(getActivity().getApplicationContext())
+                                                            .load(imageUrl)
+                                                            .into(holder.imageUser);
+                                                }
+                                                String nameUser = snapshot.child("name").getValue().toString();
+
+                                                holder.tvName.setText(nameUser);
+                                                holder.tvStatus.setText("Wants connected you a or c");
+                                                holder.cancelBtn.setVisibility(View.GONE);
+                                                holder.acceptBtn.setText("Cancel req");
+
+                                                holder.itemView.setOnClickListener(new View.OnClickListener() {
+                                                    @Override
+                                                    public void onClick(View view) {
+                                                        CharSequence[] options = new CharSequence[]{
+                                                                "Cancel"
+                                                        };
+
+                                                        AlertDialog.Builder builder = new AlertDialog
+                                                                .Builder(getContext());
+                                                        builder.setTitle(nameUser + "Char request");
+
+                                                        builder.setItems(options, new DialogInterface.OnClickListener() {
+                                                            @Override
+                                                            public void onClick(DialogInterface dialogInterface, int i) {
+                                                                removeRequestFromFirebase(sender_user_id);
+                                                            }
+                                                        });
+                                                        builder.show();
+                                                    }
+                                                });
+                                            }
+
+                                            @Override
+                                            public void onCancelled(@NonNull DatabaseError error) {
+
+                                            }
+                                        });
+                                    }
+
                                 }
                             }
 

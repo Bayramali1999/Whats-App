@@ -76,12 +76,19 @@ public class SettingsActivity extends AppCompatActivity {
         editProfileBtn.setOnClickListener(view -> updateUserData());
 
         circleImageView.setOnClickListener(view -> {
+            CropImage.activity()
+                    .setGuidelines(CropImageView.Guidelines.ON)
+                    .setAspectRatio(1, 1)
+                    .start(this);
+
             Intent galleryIntent = new Intent();
             galleryIntent.setAction(Intent.ACTION_GET_CONTENT);
             galleryIntent.setType("image/*");
             startActivityForResult(galleryIntent, REQ_GALLERY_CODE);
+
         });
     }
+
 
     private void initializationView() {
         mAuth = FirebaseAuth.getInstance();
@@ -100,18 +107,6 @@ public class SettingsActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         progressDialog.show();
 
-        Toast.makeText(this, "resultCode: " + resultCode + "requestCode:"
-                + requestCode, Toast.LENGTH_SHORT).show();
-
-        if (resultCode == RESULT_OK && requestCode == REQ_GALLERY_CODE && data != null) {
-            Uri uri = data.getData();
-            CropImage.activity()
-                    .setGuidelines(CropImageView.Guidelines.ON)
-                    .setAspectRatio(1, 1)
-                    .start(this);
-
-
-        }
         if (requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE) {
             CropImage.ActivityResult result = CropImage.getActivityResult(data);
             if (resultCode == RESULT_OK) {
