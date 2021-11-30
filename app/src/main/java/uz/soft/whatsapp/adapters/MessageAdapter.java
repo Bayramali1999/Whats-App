@@ -1,7 +1,9 @@
 package uz.soft.whatsapp.adapters;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
+import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,11 +33,13 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageV
     private DatabaseReference userRef;
     private List<Message> list;
     private Context context;
+    private String recID;
 
-    public MessageAdapter(List<Message> list, Context applicationContext) {
+    public MessageAdapter(List<Message> list, Context applicationContext, String receiverUserId) {
         mAuth = FirebaseAuth.getInstance();
         this.list = list;
         context = applicationContext;
+        recID = receiverUserId;
     }
 
     @NonNull
@@ -53,29 +57,30 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageV
         String fromUserID = message.getFrom();
         String fromMessageType = message.getType();
 
-        userRef = FirebaseDatabase.getInstance().getReference()
-                .child("Users").child(fromUserID);
+        userRef = FirebaseDatabase.getInstance().getReference();
 
-        userRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (snapshot.exists()) {
-                    if (snapshot.hasChild("image")) {
-                        String imageUrl = snapshot.child("image").getValue().toString();
-                        Glide.with(context)
-                                .load(imageUrl)
-                                .into(holder.userImage);
+        userRef.child("Users").child(fromUserID)
+                .addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        if (snapshot.exists()) {
+                            if (snapshot.hasChild("image")) {
+                                String imageUrl = snapshot.child("image")
+                                        .getValue().toString();
+                                Glide.with(context)
+                                        .load(imageUrl)
+                                        .into(holder.userImage);
+                            }
+                        }
                     }
-                }
-            }
 
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
 
-            }
+                    }
 
 
-        });
+                });
 
         holder.messageReceiver.setVisibility(View.GONE);
         holder.userImage.setVisibility(View.GONE);
@@ -88,7 +93,7 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageV
                 holder.messageSender.setVisibility(View.VISIBLE);
                 holder.messageSender.setBackgroundResource(R.drawable.sender_message_layout);
                 holder.messageSender.setTextColor(Color.BLACK);
-                holder.messageSender.setText(message.getMessage() + "\n" + message.getTime());
+                holder.messageSender.setText(message.getMessage());
             } else {
 
                 holder.messageReceiver.setVisibility(View.VISIBLE);
@@ -96,8 +101,36 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageV
 
                 holder.messageReceiver.setBackgroundResource(R.drawable.receive_message_layout);
                 holder.messageReceiver.setTextColor(Color.BLACK);
-                holder.messageReceiver.setText(message.getMessage() + "\n" + message.getTime());
+                holder.messageReceiver.setText(message.getMessage());
             }
+        } else if (fromMessageType.equals("image")) {
+            if (fromUserID.equals(messageSenderId)) {
+                holder.senderImage.setVisibility(View.VISIBLE);
+                Glide.with(holder.itemView)
+                        .load(message.getMessage())
+                        .into(holder.senderImage);
+            } else {
+                holder.receiverImage.setVisibility(View.VISIBLE);
+                Glide.with(holder.itemView)
+                        .load(message.getMessage())
+                        .into(holder.receiverImage);
+            }
+        } else {
+            if (fromUserID.equals(messageSenderId)) {
+                holder.senderImage.setVisibility(View.VISIBLE);
+                holder.senderImage.setImageResource(R.drawable.file);
+
+            } else {
+                holder.receiverImage.setVisibility(View.VISIBLE);
+                holder.receiverImage.setImageResource(R.drawable.file);
+            }
+            holder.itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(message.getMessage()));
+                    holder.itemView.getContext().startActivity(intent);
+                }
+            });
         }
     }
 

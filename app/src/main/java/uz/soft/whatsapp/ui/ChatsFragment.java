@@ -92,12 +92,15 @@ public class ChatsFragment extends Fragment {
                                             } else {
                                                 holder.tvStatus.setText(lastSeenDate);
                                             }
+                                            holder.imageOnline.setVisibility(View.INVISIBLE);
                                         }
                                         if (status.equals("online")) {
-                                            holder.tvStatus.setText("online");
+                                            holder.tvStatus.setVisibility(View.INVISIBLE);
+                                            holder.imageOnline.setVisibility(View.VISIBLE);
                                         }
                                     } else {
                                         holder.tvStatus.setText("offline");
+                                        holder.imageOnline.setVisibility(View.INVISIBLE);
                                     }
 
                                     holder.itemView.setOnClickListener(new View.OnClickListener() {

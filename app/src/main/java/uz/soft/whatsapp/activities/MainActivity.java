@@ -79,14 +79,14 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-
     @Override
-    protected void onStop() {
-        super.onStop();
-        if (currentUser != null ) {
+    protected void onDestroy() {
+        super.onDestroy();
+        if (currentUser != null) {
             updateUserState("offline");
         }
     }
+
 
     private void verifyUserNameAndStatus() {
         String uid = mAuth.getCurrentUser().getUid();
