@@ -68,10 +68,13 @@ public class PhoneLoginActivity extends AppCompatActivity {
                     loadingBar.show();
                     PhoneAuthProvider
                             .getInstance()
-                            .verifyPhoneNumber(phoneNumber,
+                            .verifyPhoneNumber(
+                                    phoneNumber,
                                     60,
                                     TimeUnit.SECONDS,
                                     PhoneLoginActivity.this, callbacks);
+
+
                 }
             }
         });

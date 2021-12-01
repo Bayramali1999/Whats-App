@@ -1,5 +1,6 @@
 package uz.soft.whatsapp.activities;
 
+import android.annotation.SuppressLint;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
@@ -43,6 +44,7 @@ public class MainActivity extends AppCompatActivity {
     private FirebaseUser currentUser;
     private FirebaseAuth mAuth;
     private DatabaseReference databaseReference;
+    private String userId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -89,8 +91,8 @@ public class MainActivity extends AppCompatActivity {
 
 
     private void verifyUserNameAndStatus() {
-        String uid = mAuth.getCurrentUser().getUid();
-        databaseReference.child("Users").child(uid).addValueEventListener(new ValueEventListener() {
+        userId = mAuth.getCurrentUser().getUid();
+        databaseReference.child("Users").child(userId).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if ((snapshot.child("name").exists())) {
@@ -109,7 +111,6 @@ public class MainActivity extends AppCompatActivity {
 
     private void goToLoginActivity() {
         Intent intent = new Intent(this, LoginActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();
     }
@@ -200,7 +201,7 @@ public class MainActivity extends AppCompatActivity {
     private void updateUserState(String state) {
         String currentDate, currentTime;
         Calendar data = Calendar.getInstance();
-        SimpleDateFormat sdDate = new SimpleDateFormat("dd.MM.yyyy");
+        @SuppressLint("SimpleDateFormat") SimpleDateFormat sdDate = new SimpleDateFormat("dd.MM.yyyy");
 
         SimpleDateFormat sdTime = new SimpleDateFormat("hh:mm");
 
@@ -214,9 +215,8 @@ public class MainActivity extends AppCompatActivity {
         statusHash.put("state", state);
 
         if (mAuth != null) {
-            String currentUser = mAuth.getCurrentUser().getUid();
             databaseReference.child("Users")
-                    .child(currentUser)
+                    .child(userId)
                     .child("userState")
                     .updateChildren(statusHash);
         }
