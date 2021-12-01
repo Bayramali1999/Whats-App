@@ -66,9 +66,12 @@ public class PhoneLoginActivity extends AppCompatActivity {
                     loadingBar.setMessage("Please wait, while we are authenticating using your phone...");
                     loadingBar.setCanceledOnTouchOutside(false);
                     loadingBar.show();
-
-
-                    PhoneAuthProvider.getInstance().verifyPhoneNumber(phoneNumber, 60, TimeUnit.SECONDS, PhoneLoginActivity.this, callbacks);
+                    PhoneAuthProvider
+                            .getInstance()
+                            .verifyPhoneNumber(phoneNumber,
+                                    60,
+                                    TimeUnit.SECONDS,
+                                    PhoneLoginActivity.this, callbacks);
                 }
             }
         });
@@ -102,6 +105,7 @@ public class PhoneLoginActivity extends AppCompatActivity {
             @Override
             public void onVerificationCompleted(PhoneAuthCredential phoneAuthCredential) {
                 signInWithPhoneAuthCredential(phoneAuthCredential);
+
             }
 
             @Override
@@ -118,10 +122,8 @@ public class PhoneLoginActivity extends AppCompatActivity {
 
             public void onCodeSent(String verificationId,
                                    PhoneAuthProvider.ForceResendingToken token) {
-                // Save verification ID and resending token so we can use them later
                 mVerificationId = verificationId;
                 mResendToken = token;
-
 
                 Toast.makeText(PhoneLoginActivity.this, "Code has been sent, please check and verify...", Toast.LENGTH_SHORT).show();
                 loadingBar.dismiss();

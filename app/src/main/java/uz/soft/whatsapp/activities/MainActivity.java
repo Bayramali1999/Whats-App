@@ -213,11 +213,13 @@ public class MainActivity extends AppCompatActivity {
         statusHash.put("time", currentTime);
         statusHash.put("state", state);
 
-        String currentUser = mAuth.getCurrentUser().getUid();
-        databaseReference.child("Users")
-                .child(currentUser)
-                .child("userState")
-                .updateChildren(statusHash);
+        if (mAuth != null) {
+            String currentUser = mAuth.getCurrentUser().getUid();
+            databaseReference.child("Users")
+                    .child(currentUser)
+                    .child("userState")
+                    .updateChildren(statusHash);
+        }
 
     }
 }
