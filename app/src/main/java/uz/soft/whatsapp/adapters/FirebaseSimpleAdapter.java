@@ -3,6 +3,7 @@ package uz.soft.whatsapp.adapters;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -11,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.firebase.ui.database.FirebaseRecyclerOptions;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.ValueEventListener;
@@ -35,6 +37,23 @@ public class FirebaseSimpleAdapter extends FirebaseRecyclerAdapter<Contacts, Fir
     @Override
     protected void onBindViewHolder(@NonNull FirebaseVH holder,
                                     int position, @NonNull Contacts model) {
+        getRef(position).child("uid")
+                .addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        if (snapshot.exists()) {
+
+                            if (snapshot.getValue().toString().equals(FirebaseAuth.getInstance().getCurrentUser().getUid())) {
+                                holder.root.setVisibility(View.GONE);
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+
+                    }
+                });
         getRef(position).child("userState")
                 .addValueEventListener(new ValueEventListener() {
                     @Override
@@ -85,10 +104,12 @@ public class FirebaseSimpleAdapter extends FirebaseRecyclerAdapter<Contacts, Fir
         TextView tvName, tvStatus;
         CircleImageView imageUser, imageOnline;
         View view;
+        RelativeLayout root;
 
         public FirebaseVH(@NonNull View itemView) {
             super(itemView);
             view = itemView;
+            root = itemView.findViewById(R.id.root_view);
             tvName = itemView.findViewById(R.id.find_friends_name);
             tvStatus = itemView.findViewById(R.id.find_friends_status);
             imageUser = itemView.findViewById(R.id.find_friends_image);

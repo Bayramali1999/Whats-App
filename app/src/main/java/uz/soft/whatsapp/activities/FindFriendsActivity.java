@@ -63,7 +63,6 @@ public class FindFriendsActivity extends AppCompatActivity implements OnItemClic
                                     .endAt(str + "\uf8ff"),
                             Contacts.class)
                     .build();
-
         }
 
         adapter = new FirebaseSimpleAdapter(options, this);

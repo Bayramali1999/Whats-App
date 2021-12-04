@@ -68,7 +68,7 @@ public class ChatsFragment extends Fragment {
                             @Override
                             public void onDataChange(@NonNull DataSnapshot snapshot) {
                                 if (snapshot.exists()) {
-                                    if (snapshot.hasChild("image") && getActivity() != null) {
+                                    if (snapshot.hasChild("image") && getContext() != null) {
                                         String imageUrl = snapshot.child("image").getValue().toString();
                                         Glide.with(getContext())
                                                 .load(imageUrl)

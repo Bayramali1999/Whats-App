@@ -75,6 +75,7 @@ public class ContactFragment extends Fragment {
                             String status = snapshot.child("status").getValue().toString();
 
 
+
                             holder.tvName.setText(name);
                             holder.tvStatus.setText(status);
                             if (getContext() != null) {

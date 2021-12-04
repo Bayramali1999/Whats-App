@@ -96,47 +96,50 @@ public class RequestsFragment extends Fragment {
                                                                 "Accept",
                                                                 "Cancel"
                                                         };
+                                                        if (getContext() != null) {
+                                                            AlertDialog.Builder builder = new AlertDialog
+                                                                    .Builder(getContext());
+                                                            builder.setTitle(nameUser + "Char request");
 
-                                                        AlertDialog.Builder builder = new AlertDialog
-                                                                .Builder(getContext());
-                                                        builder.setTitle(nameUser + "Char request");
-
-                                                        builder.setItems(options, new DialogInterface.OnClickListener() {
-                                                            @Override
-                                                            public void onClick(DialogInterface dialogInterface, int i) {
-                                                                if (i == 0) {
-                                                                    contactRef
-                                                                            .child(currentUserId)
-                                                                            .child(sender_user_id)
-                                                                            .child("Contact")
-                                                                            .setValue("Saved")
-                                                                            .addOnCompleteListener(new OnCompleteListener<Void>() {
-                                                                                @Override
-                                                                                public void onComplete(@NonNull Task<Void> task) {
-                                                                                    if (task.isSuccessful()) {
-                                                                                        contactRef
-                                                                                                .child(sender_user_id)
-                                                                                                .child(currentUserId).child("Contact")
-                                                                                                .setValue("Saved")
-                                                                                                .addOnCompleteListener(new OnCompleteListener<Void>() {
-                                                                                                    @Override
-                                                                                                    public void onComplete(@NonNull Task<Void> task) {
-                                                                                                        if (task.isSuccessful()) {
-                                                                                                            removeRequestFromFirebase(sender_user_id);
+                                                            builder.setItems(options, new DialogInterface.OnClickListener() {
+                                                                @Override
+                                                                public void onClick(DialogInterface dialogInterface, int i) {
+                                                                    if (i == 0) {
+                                                                        contactRef
+                                                                                .child(currentUserId)
+                                                                                .child(sender_user_id)
+                                                                                .child("Contact")
+                                                                                .setValue("Saved")
+                                                                                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                                                    @Override
+                                                                                    public void onComplete(@NonNull Task<Void> task) {
+                                                                                        if (task.isSuccessful()) {
+                                                                                            contactRef
+                                                                                                    .child(sender_user_id)
+                                                                                                    .child(currentUserId).child("Contact")
+                                                                                                    .setValue("Saved")
+                                                                                                    .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                                                                        @Override
+                                                                                                        public void onComplete(@NonNull Task<Void> task) {
+                                                                                                            if (task.isSuccessful()) {
+                                                                                                                removeRequestFromFirebase(sender_user_id);
+                                                                                                            }
                                                                                                         }
-                                                                                                    }
-                                                                                                });
+                                                                                                    });
+                                                                                        }
                                                                                     }
-                                                                                }
-                                                                            });
-                                                                }
-                                                                if (i == 1) {
-                                                                    removeRequestFromFirebase(sender_user_id);
-                                                                }
+                                                                                });
+                                                                    }
+                                                                    if (i == 1) {
+                                                                        removeRequestFromFirebase(sender_user_id);
+                                                                    }
 
-                                                            }
-                                                        });
-                                                        builder.show();
+                                                                }
+                                                            });
+                                                            builder.show();
+                                                        }
+
+
                                                     }
                                                 });
                                             }
@@ -153,9 +156,11 @@ public class RequestsFragment extends Fragment {
                                             public void onDataChange(@NonNull DataSnapshot snapshot) {
                                                 if (snapshot.hasChild("image") && snapshot.exists()) {
                                                     String imageUrl = snapshot.child("image").getValue().toString();
-                                                    Glide.with(getActivity().getApplicationContext())
-                                                            .load(imageUrl)
-                                                            .into(holder.imageUser);
+                                                    if (getContext() != null) {
+                                                        Glide.with(getContext())
+                                                                .load(imageUrl)
+                                                                .into(holder.imageUser);
+                                                    }
                                                 }
                                                 String nameUser = snapshot.child("name").getValue().toString();
 

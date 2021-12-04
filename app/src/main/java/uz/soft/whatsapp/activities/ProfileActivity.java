@@ -1,5 +1,6 @@
 package uz.soft.whatsapp.activities;
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -7,6 +8,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 
 import com.bumptech.glide.Glide;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -33,10 +35,17 @@ public class ProfileActivity extends AppCompatActivity {
     private CircleImageView profileImage;
     private Button button, cancelRequest;
 
+    @SuppressLint("RestrictedApi")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
+        Toolbar toolbar = findViewById(R.id.profile_toolbar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setTitle("User Profile");
+        getSupportActionBar().setDefaultDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+//        getSupportActionBar()
 
         mAuth = FirebaseAuth.getInstance();
 
