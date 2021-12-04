@@ -35,6 +35,22 @@
         </LinearLayout>
 
         <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/chat_user_audio_call"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_marginRight="8dp"
+            android:padding="10dp"
+            android:src="@drawable/ic_baseline_call_24" />
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/chat_user_video_call"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_marginRight="8dp"
+            android:padding="10dp"
+            android:src="@drawable/ic_baseline_videocam_24" />
+
+        <de.hdodenhof.circleimageview.CircleImageView
             android:id="@+id/chat_user_image"
             android:layout_width="50dp"
             android:layout_height="50dp"

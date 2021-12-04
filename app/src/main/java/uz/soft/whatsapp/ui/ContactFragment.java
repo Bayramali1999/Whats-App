@@ -77,9 +77,11 @@ public class ContactFragment extends Fragment {
 
                             holder.tvName.setText(name);
                             holder.tvStatus.setText(status);
-                            Glide.with(getActivity().getApplicationContext())
-                                    .load(image)
-                                    .into(holder.imageUser);
+                            if (getContext() != null) {
+                                Glide.with(getContext())
+                                        .load(image)
+                                        .into(holder.imageUser);
+                            }
                         } else {
                             String name = snapshot.child("name").getValue().toString();
                             String status = snapshot.child("status").getValue().toString();
