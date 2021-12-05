@@ -303,7 +303,7 @@ public class ChatActivity extends AppCompatActivity {
                         if (snapshot.exists()) {
                             if (snapshot.hasChild("image")) {
                                 String imageUrl = snapshot.child("image").getValue().toString();
-                                Glide.with(getApplicationContext())
+                                Glide.with(ChatActivity.this)
                                         .load(imageUrl)
                                         .into(imageUser);
                             }

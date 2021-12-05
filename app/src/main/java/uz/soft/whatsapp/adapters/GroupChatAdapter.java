@@ -1,6 +1,5 @@
 package uz.soft.whatsapp.adapters;
 
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,9 +10,10 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
+
 import java.util.List;
 
-import de.hdodenhof.circleimageview.CircleImageView;
 import uz.soft.whatsapp.R;
 import uz.soft.whatsapp.model.ChatModel;
 
@@ -50,7 +50,6 @@ public class GroupChatAdapter extends RecyclerView.Adapter<GroupChatAdapter.GrVH
         private TextView senderNameText, senderText, senderTime;
         private TextView receiverNameText, receiverText, receiverTime;
         private ImageView senderImage, receiverImage;
-        private CircleImageView circleImageView;
 
         public GrVH(@NonNull View itemView) {
             super(itemView);
@@ -58,45 +57,53 @@ public class GroupChatAdapter extends RecyclerView.Adapter<GroupChatAdapter.GrVH
             receiverNameText = itemView.findViewById(R.id.sender_name);
             receiverText = itemView.findViewById(R.id.text_receiver_text_send);
             receiverTime = itemView.findViewById(R.id.sender_time);
-            receiverImage = itemView.findViewById(R.id.chat_receiver_image);
-
-
+            receiverImage = itemView.findViewById(R.id.chat_sender_image_i);
             senderItems = itemView.findViewById(R.id.lv_receiver);
             senderNameText = itemView.findViewById(R.id.receiver_name);
             senderText = itemView.findViewById(R.id.text_reveiver_text_id);
             senderTime = itemView.findViewById(R.id.tv_receiver_tim);
-            senderImage = itemView.findViewById(R.id.chat_sender_image);
-
+            senderImage = itemView.findViewById(R.id.chat_rec_image_i);
 
         }
 
         public void onBind(ChatModel chatModel, String currentUser) {
             receiverItems.setVisibility(View.GONE);
-            receiverImage.setVisibility(View.GONE);
-
             senderItems.setVisibility(View.GONE);
-            senderImage.setVisibility(View.GONE);
 
             if (chatModel.getUid().equals(currentUser)) {
-
-                Log.e("TAG", "onBind: " + chatModel.getName());
-                Log.e("TAG", "onBind: " + chatModel.getText());
-                Log.e("TAG", "onBind: " + chatModel.getUid());
-                Log.e("TAG", "onBind: " + chatModel.getTime());
                 senderItems.setVisibility(View.VISIBLE);
                 senderNameText.setText(chatModel.getName());
-                senderText.setText(chatModel.getText());
                 senderTime.setText(chatModel.getTime());
+                if (chatModel.getType().equals("text")) {
+                    senderImage.setVisibility(View.GONE);
+                    senderText.setVisibility(View.VISIBLE);
+                    senderText.setText(chatModel.getText());
+                }
+                if (chatModel.getType().equals("image")) {
+                    senderImage.setVisibility(View.VISIBLE);
+                    senderText.setVisibility(View.GONE);
+//                    senderImageContainer.setVisibility(View.VISIBLE);
+                    Glide.with(itemView.getContext())
+                            .load(chatModel.getText())
+                            .into(senderImage);
+                }
             } else {
-
-                Log.e("TAG", "onBind: " + chatModel.getName());
-                Log.e("TAG", "onBind: " + chatModel.getText());
-                Log.e("TAG", "onBind: " + chatModel.getUid());
-                Log.e("TAG", "onBind: " + chatModel.getTime());
                 receiverItems.setVisibility(View.VISIBLE);
-                receiverNameText.setText(chatModel.getName());
-                receiverText.setText(chatModel.getText());
                 receiverTime.setText(chatModel.getTime());
+                receiverNameText.setText(chatModel.getName());
+                if (chatModel.getType().equals("text")) {
+                    receiverImage.setVisibility(View.GONE);
+                    receiverText.setVisibility(View.VISIBLE);
+                    receiverText.setText(chatModel.getText());
+                }
+                if (chatModel.getType().equals("image")) {
+                    receiverImage.setVisibility(View.VISIBLE);
+                    receiverText.setVisibility(View.GONE);
+//                    receiverImageContainer.setVisibility(View.VISIBLE);
+                    Glide.with(itemView.getContext())
+                            .load(chatModel.getText())
+                            .into(receiverImage);
+                }
             }
         }
     }
