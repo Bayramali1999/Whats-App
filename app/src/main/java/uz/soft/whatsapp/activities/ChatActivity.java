@@ -12,6 +12,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -22,7 +23,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.bumptech.glide.Glide;
 import com.google.android.gms.tasks.Continuation;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -38,6 +38,7 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.StorageTask;
 import com.google.firebase.storage.UploadTask;
+import com.squareup.picasso.Picasso;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -71,6 +72,8 @@ public class ChatActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
     private DatabaseReference chatUserRef, rootRef;
 
+    private ImageView videoCall;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -80,6 +83,7 @@ public class ChatActivity extends AppCompatActivity {
         retrieveData();
         sentMessageAction();
         changeReceiverUserState();
+        videoCall = findViewById(R.id.chat_user_video_call);
 
         sentFiles.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -122,6 +126,15 @@ public class ChatActivity extends AppCompatActivity {
                     }
                 });
                 builder.show();
+            }
+        });
+
+        videoCall.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(ChatActivity.this, VideoCallOutGoingActivity.class);
+                intent.putExtra("receiverUserId", receiverUserId);
+                startActivity(intent);
             }
         });
 
@@ -303,9 +316,10 @@ public class ChatActivity extends AppCompatActivity {
                         if (snapshot.exists()) {
                             if (snapshot.hasChild("image")) {
                                 String imageUrl = snapshot.child("image").getValue().toString();
-                                Glide.with(ChatActivity.this)
-                                        .load(imageUrl)
-                                        .into(imageUser);
+//                                Glide.with(ChatActivity.this)
+//                                        .load(imageUrl)
+//                                        .into(imageUser);
+                                Picasso.get().load(imageUrl).into(imageUser);
                             }
                             String userName = snapshot.child("name").getValue().toString();
                             tvName.setText(userName);
@@ -368,6 +382,42 @@ public class ChatActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
+
+        rootRef.child("Users").child(senderUserId)
+                .addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+
+                        if (snapshot.exists() && snapshot.hasChild("ComingCall")) {
+                            String senderUid = snapshot.child("ComingCall").child("uid").getValue().toString();
+                            rootRef.child("Users")
+                                    .child(senderUid)
+                                    .addValueEventListener(new ValueEventListener() {
+                                        @Override
+                                        public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                            if (snapshot.hasChild("GoOutCall")) {
+                                                Intent intent = new Intent(ChatActivity.this, VideoCallComingActivity.class);
+                                                intent.putExtra("senderUid", senderUid);
+                                                startActivity(intent);
+                                            }
+                                        }
+
+                                        @Override
+                                        public void onCancelled(@NonNull DatabaseError error) {
+
+                                        }
+                                    });
+
+                        } else {
+
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+
+                    }
+                });
         rootRef.child("Messages")
                 .child(senderUserId)
                 .child(receiverUserId)

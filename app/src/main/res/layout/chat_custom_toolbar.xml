@@ -34,7 +34,7 @@
                 android:textSize="14sp" />
         </LinearLayout>
 
-        <de.hdodenhof.circleimageview.CircleImageView
+        <ImageView
             android:id="@+id/chat_user_audio_call"
             android:layout_width="50dp"
             android:layout_height="50dp"
@@ -42,7 +42,7 @@
             android:padding="10dp"
             android:src="@drawable/ic_baseline_call_24" />
 
-        <de.hdodenhof.circleimageview.CircleImageView
+        <ImageView
             android:id="@+id/chat_user_video_call"
             android:layout_width="50dp"
             android:layout_height="50dp"
