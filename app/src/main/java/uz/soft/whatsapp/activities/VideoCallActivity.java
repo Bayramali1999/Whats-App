@@ -74,7 +74,7 @@ public class VideoCallActivity extends AppCompatActivity
                                     if (mSubscriber != null) {
                                         mSubscriber.destroy();
                                     }
-                                    startActivity(new Intent(VideoCallActivity.this, RegisterActivity.class));
+                                    startActivity(new Intent(VideoCallActivity.this, SettingsActivity.class));
                                     finish();
                                 }
                                 if (snapshot.hasChild("GoOutCall")) {
@@ -86,7 +86,7 @@ public class VideoCallActivity extends AppCompatActivity
                                     if (mSubscriber != null) {
                                         mSubscriber.destroy();
                                     }
-                                    startActivity(new Intent(VideoCallActivity.this, RegisterActivity.class));
+                                    startActivity(new Intent(VideoCallActivity.this, SettingsActivity.class));
                                     finish();
 
                                 } else {
@@ -96,7 +96,7 @@ public class VideoCallActivity extends AppCompatActivity
                                     if (mSubscriber != null) {
                                         mSubscriber.destroy();
                                     }
-                                    startActivity(new Intent(VideoCallActivity.this, RegisterActivity.class));
+                                    startActivity(new Intent(VideoCallActivity.this, SettingsActivity.class));
                                     finish();
 
                                 }

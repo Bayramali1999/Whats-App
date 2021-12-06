@@ -59,6 +59,7 @@ public class VideoCallOutGoingActivity extends AppCompatActivity {
         cancelButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
                 mediaPlayer.stop();
 
                 userRef.child(currentUser)
@@ -69,7 +70,7 @@ public class VideoCallOutGoingActivity extends AppCompatActivity {
                         .child("ComingCall")
                         .removeValue();
 
-                startActivity(new Intent(VideoCallOutGoingActivity.this, RegisterActivity.class));
+                startActivity(new Intent(VideoCallOutGoingActivity.this, SettingsActivity.class));
                 finish();
 
             }
@@ -133,6 +134,22 @@ public class VideoCallOutGoingActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
+        userRef.child(currentUser)
+                .addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        if (!snapshot.hasChild("GoOutCall")) {
+                            mediaPlayer.stop();
+                            startActivity(new Intent(VideoCallOutGoingActivity.this, SettingsActivity.class));
+                            finish();
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+
+                    }
+                });
 
         userRef.child(receiverId)
                 .addValueEventListener(new ValueEventListener() {
@@ -145,19 +162,8 @@ public class VideoCallOutGoingActivity extends AppCompatActivity {
                             if (answer.equals("")) {
 
                             }
-                            if (answer.equals("no")) {
-
+                            if (answer.equals("yes")) {
                                 mediaPlayer.stop();
-
-                                String name = snapshot.child("name").getValue().toString();
-                                Intent intent = new Intent(VideoCallOutGoingActivity.this, ChatActivity.class);
-                                intent.putExtra("visit_user_id", receiverId);
-                                intent.putExtra("visit_user_name", name);
-                                startActivity(intent);
-                                finish();
-                            } else if (answer.equals("yes")) {
-                                mediaPlayer.stop();
-
                                 Intent intent = new Intent(VideoCallOutGoingActivity.this, VideoCallActivity.class);
                                 intent.putExtra("visit_user_id", receiverId);
                                 startActivity(intent);

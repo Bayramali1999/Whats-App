@@ -2,28 +2,23 @@ package uz.soft.whatsapp.adapters;
 
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Color;
 import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.bumptech.glide.Glide;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
+import com.squareup.picasso.Picasso;
 
 import java.util.List;
 
-import de.hdodenhof.circleimageview.CircleImageView;
 import uz.soft.whatsapp.R;
 import uz.soft.whatsapp.model.Message;
 
@@ -57,70 +52,47 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageV
         String fromUserID = message.getFrom();
         String fromMessageType = message.getType();
 
-        userRef = FirebaseDatabase.getInstance().getReference();
-
-        userRef.child("Users").child(fromUserID)
-                .addValueEventListener(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        if (snapshot.exists()) {
-                            if (snapshot.hasChild("image")) {
-                                String imageUrl = snapshot.child("image")
-                                        .getValue().toString();
-                                Glide.with(context)
-                                        .load(imageUrl)
-                                        .into(holder.userImage);
-                            }
-                        }
-                    }
-
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError error) {
-
-                    }
-
-
-                });
-
-        holder.messageReceiver.setVisibility(View.GONE);
-        holder.userImage.setVisibility(View.GONE);
-        holder.messageSender.setVisibility(View.GONE);
-        holder.senderImage.setVisibility(View.GONE);
+        holder.senderItems.setVisibility(View.GONE);
+        holder.receiverItems.setVisibility(View.GONE);
         holder.receiverImage.setVisibility(View.GONE);
+        holder.senderImage.setVisibility(View.GONE);
+        holder.receiverText.setVisibility(View.GONE);
+        holder.senderText.setVisibility(View.GONE);
 
         if (fromMessageType.equals("text")) {
             if (fromUserID.equals(messageSenderId)) {
-                holder.messageSender.setVisibility(View.VISIBLE);
-                holder.messageSender.setBackgroundResource(R.drawable.sender_message_layout);
-                holder.messageSender.setTextColor(Color.BLACK);
-                holder.messageSender.setText(message.getMessage());
+                holder.senderItems.setVisibility(View.VISIBLE);
+                holder.senderText.setVisibility(View.VISIBLE);
+                holder.senderText.setText(message.getMessage());
+                holder.senderTime.setText(message.getTime());
             } else {
-
-                holder.messageReceiver.setVisibility(View.VISIBLE);
-                holder.userImage.setVisibility(View.VISIBLE);
-
-                holder.messageReceiver.setBackgroundResource(R.drawable.receive_message_layout);
-                holder.messageReceiver.setTextColor(Color.BLACK);
-                holder.messageReceiver.setText(message.getMessage());
+                holder.receiverItems.setVisibility(View.VISIBLE);
+                holder.receiverText.setVisibility(View.VISIBLE);
+                holder.receiverText.setText(message.getMessage());
+                holder.receiverTime.setText(message.getTime());
             }
         } else if (fromMessageType.equals("image")) {
             if (fromUserID.equals(messageSenderId)) {
+                holder.senderItems.setVisibility(View.VISIBLE);
                 holder.senderImage.setVisibility(View.VISIBLE);
-                Glide.with(holder.itemView)
-                        .load(message.getMessage())
+                Picasso.get().load(message.getMessage())
                         .into(holder.senderImage);
+                holder.senderTime.setText(message.getTime());
             } else {
+                holder.receiverItems.setVisibility(View.VISIBLE);
                 holder.receiverImage.setVisibility(View.VISIBLE);
-                Glide.with(holder.itemView)
-                        .load(message.getMessage())
+                Picasso.get().load(message.getMessage())
                         .into(holder.receiverImage);
+                holder.receiverTime.setText(message.getTime());
             }
         } else {
             if (fromUserID.equals(messageSenderId)) {
+                holder.senderItems.setVisibility(View.VISIBLE);
                 holder.senderImage.setVisibility(View.VISIBLE);
                 holder.senderImage.setImageResource(R.drawable.file);
 
             } else {
+                holder.receiverItems.setVisibility(View.VISIBLE);
                 holder.receiverImage.setVisibility(View.VISIBLE);
                 holder.receiverImage.setImageResource(R.drawable.file);
             }
@@ -140,15 +112,25 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageV
     }
 
     class MessageVH extends RecyclerView.ViewHolder {
-        TextView messageSender, messageReceiver;
-        CircleImageView userImage;
-        ImageView senderImage, receiverImage;
+
+        private LinearLayout senderItems;
+        private LinearLayout receiverItems;
+        private TextView senderText, senderTime;
+        private TextView receiverText, receiverTime;
+        private ImageView senderImage, receiverImage;
 
         public MessageVH(@NonNull View itemView) {
             super(itemView);
-            messageReceiver = itemView.findViewById(R.id.text_receiver_text);
-            messageSender = itemView.findViewById(R.id.text_sender_text);
-            userImage = itemView.findViewById(R.id.chat_user_image);
+
+            receiverItems = itemView.findViewById(R.id.chat_lv_sender);
+            senderItems = itemView.findViewById(R.id.caht_lv_receiver);
+
+            senderText = itemView.findViewById(R.id.chat_sender_text);
+            senderTime = itemView.findViewById(R.id.chat_sender_time);
+
+            receiverText = itemView.findViewById(R.id.text_receiver_text);
+            receiverTime = itemView.findViewById(R.id.chat_receiver_time);
+
 
             senderImage = itemView.findViewById(R.id.chat_sender_image);
             receiverImage = itemView.findViewById(R.id.chat_receiver_image);

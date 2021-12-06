@@ -92,7 +92,7 @@
             android:padding="8dp"
             android:text="send medddddddddddddddddddddddddddddddddssage"
             android:textColor="@android:color/black"
-            android:textSize="15dp" />
+            android:textSize="15sp" />
 
         <TextView
             android:id="@+id/tv_receiver_tim"
@@ -100,7 +100,7 @@
             android:layout_height="wrap_content"
             android:gravity="start"
             android:text="time:asda"
-            android:textSize="10dp" />
+            android:textSize="10sp" />
     </LinearLayout>
 
 

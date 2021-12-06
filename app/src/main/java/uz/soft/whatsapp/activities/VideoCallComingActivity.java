@@ -57,6 +57,8 @@ public class VideoCallComingActivity extends AppCompatActivity {
         cancelButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                mediaPlayer.stop();
+
                 userRef.child(senderId)
                         .child("GoOutCall")
                         .removeValue();
@@ -65,7 +67,7 @@ public class VideoCallComingActivity extends AppCompatActivity {
                         .child("ComingCall")
                         .removeValue();
 
-                startActivity(new Intent(VideoCallComingActivity.this, RegisterActivity.class));
+                startActivity(new Intent(VideoCallComingActivity.this, MainActivity.class));
                 finish();
             }
         });
@@ -94,6 +96,7 @@ public class VideoCallComingActivity extends AppCompatActivity {
                                 .addOnCompleteListener(new OnCompleteListener<Void>() {
                                     @Override
                                     public void onComplete(@NonNull Task<Void> task) {
+                                        mediaPlayer.stop();
                                         Intent intent = new Intent(VideoCallComingActivity.this, VideoCallActivity.class);
                                         intent.putExtra("senderId", senderId);
                                         startActivity(intent);
@@ -107,6 +110,42 @@ public class VideoCallComingActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
+
+        userRef.child(senderId)
+                .addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        if (!snapshot.hasChild("GoOutCall")) {
+                            mediaPlayer.stop();
+                            startActivity(new Intent(VideoCallComingActivity.this, SettingsActivity.class));
+                            finish();
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+
+                    }
+                });
+
+        userRef.child(currentUser)
+                .addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        if (!snapshot.hasChild("ComingCall")) {
+                            mediaPlayer.stop();
+                            startActivity(new Intent(VideoCallComingActivity.this, SettingsActivity.class));
+                            finish();
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+
+                    }
+                });
+
+
         userRef.child(senderId)
                 .addValueEventListener(new ValueEventListener() {
                     @Override
